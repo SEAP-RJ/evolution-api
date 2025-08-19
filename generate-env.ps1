@@ -42,7 +42,14 @@ while ($true) {
 }
 
 # 2) Dominio e email
-$domain = Read-Host "Digite o domínio completo para a API (ex: api.seu-dominio.com)"
+$defaultDomain = 'n8nchatbot.com.br'
+$domainInput = Read-Host "Digite o domínio completo para a API (ex: api.seu-dominio.com) [Enter para usar $defaultDomain]"
+if ([string]::IsNullOrWhiteSpace($domainInput)) {
+    $domain = $defaultDomain
+} else {
+    $domain = $domainInput
+}
+
 if ([string]::IsNullOrWhiteSpace($domain)) { Write-Error "Domínio obrigatório"; exit 1 }
 $acmeEmail = Read-Host "Digite o e-mail para ACME/Let's Encrypt (ex: seu-email@dominio.com)"
 if ([string]::IsNullOrWhiteSpace($acmeEmail)) { Write-Error "ACME email obrigatório"; exit 1 }

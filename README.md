@@ -13,6 +13,7 @@ Arquivos importantes
 - `.env.example` — template seguro (não commite `.env` real)
 - `generate-env.ps1` — gera `.env` localmente (PowerShell)
 - `deploy-ubuntu.sh` — script de deploy para instâncias Ubuntu/EC2 (swap, Docker, gerar .env e subir stack)
+- `.github/COPILOT_INSTRUCTIONS.md` — orientação interna para o GitHub Copilot sobre padrões e convenções do repositório
 
 Resumo rápido de passos
 
@@ -107,6 +108,12 @@ Segurança / boas práticas rápidas
 Ajuda adicional
 
 - Quer que eu adicione um `systemd` unit para subir a stack no boot, ou um job de backup automático (cron) para `pg_dump` e upload para S3? Diga "systemd" ou "backup" e eu adiciono.
+
+Instruções para GitHub Copilot
+
+- Este repositório contém um arquivo de instruções para o GitHub Copilot em `.github/COPILOT_INSTRUCTIONS.md`.
+- O arquivo orienta convenções de formatação, segurança (não comitar `.env`), e padrões ao gerar código/snippets.
+- Mantenha o arquivo atualizado quando alterar padrões de contribuição ou regras de geração automática.
 
 ---
 

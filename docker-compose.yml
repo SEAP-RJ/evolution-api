@@ -7,36 +7,51 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+      TZ: America/Sao_Paulo
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} || exit 1",
-        ]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
+    networks: [appnet]
 
   evolution-api:
-    image: atendai/evolution-api:latest
+    image: evoapicloud/evolution-api:latest
     container_name: evolution_api
     restart: always
     depends_on:
       postgres:
         condition: service_healthy
-    # NÃO exponha 8080 publicamente; Caddy fará o proxy
     expose:
       - "8080"
     env_file:
       - .env
+    environment:
+      - TZ=America/Sao_Paulo
+      - LAUNCH_ARGS=--no-sandbox --disable-dev-shm-usage
+      # - NODE_OPTIONS=--max-old-space-size=1024
+      # Verbosidade extra (opcional):
+      - LOG_LEVEL=debug
+      - LOG_BAILEYS=info
     volumes:
       - evolution_instances:/evolution/instances
-    shm_size: "1gb" # ajuda o Chromium/headless
-    environment:
-      - LAUNCH_ARGS=--no-sandbox --disable-dev-shm-usage
-      - NODE_OPTIONS=--max-old-space-size=512
+    shm_size: "1gb"
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/ >/dev/null || wget -qO- http://localhost:8080/ >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks:
+      appnet:
+        aliases:
+          - evolution-api
+          - evolution_api
 
   caddy:
     image: caddy:2.8
@@ -51,15 +66,23 @@ services:
       - BASIC_AUTH_USER=${BASIC_AUTH_USER}
       - BASIC_AUTH_HASH=${BASIC_AUTH_HASH}
       - AUTHENTICATION_API_KEY=${AUTHENTICATION_API_KEY}
+      - TZ=America/Sao_Paulo
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
-      - evolution-api
+      evolution-api:
+        condition: service_healthy
+    networks: [appnet]
 
 volumes:
   pgdata:
   evolution_instances:
   caddy_data:
   caddy_config:
+
+networks:
+  appnet:
+    driver: bridge
+    name: appnet

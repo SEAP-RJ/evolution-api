@@ -1,6 +1,7 @@
 {
   email {$ACME_EMAIL}
-  # opcional: acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+  # Para testar sem rate-limit:
+  # acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
 }
 
 {$DOMAIN} {
@@ -15,17 +16,21 @@
     Permissions-Policy "geolocation=(), microphone=(), camera=()"
   }
 
+  # Bloquear varreduras de arquivos sensíveis
+  @dotfiles path /.env* /.git* /*.env
+  respond @dotfiles 403
+
+  # Console protegido
   @manager path /manager*
   handle @manager {
-    basic_auth bcrypt {
-      "{$BASIC_AUTH_USER}" "{$BASIC_AUTH_HASH}"
+    basic_auth {
+      {$BASIC_AUTH_USER} {$BASIC_AUTH_HASH}
     }
-    reverse_proxy evolution_api:8080
+    reverse_proxy evolution-api:8080
   }
 
   # Demais rotas da API
-  reverse_proxy evolution_api:8080 {
-    # tempo extra para operações mais lentas
+  reverse_proxy evolution-api:8080 {
     transport http {
       read_timeout  120s
       write_timeout 120s

@@ -1,0 +1,65 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: evolution_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  evolution-api:
+    image: atendai/evolution-api:latest
+    container_name: evolution_api
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # NÃO exponha 8080 publicamente; Caddy fará o proxy
+    expose:
+      - "8080"
+    env_file:
+      - .env
+    volumes:
+      - evolution_instances:/evolution/instances
+    shm_size: "1gb" # ajuda o Chromium/headless
+    environment:
+      - LAUNCH_ARGS=--no-sandbox --disable-dev-shm-usage
+      - NODE_OPTIONS=--max-old-space-size=512
+
+  caddy:
+    image: caddy:2.8
+    container_name: evolution_caddy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOMAIN=${DOMAIN}
+      - ACME_EMAIL=${ACME_EMAIL}
+      - BASIC_AUTH_USER=${BASIC_AUTH_USER}
+      - BASIC_AUTH_HASH=${BASIC_AUTH_HASH}
+      - AUTHENTICATION_API_KEY=${AUTHENTICATION_API_KEY}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - evolution-api
+
+volumes:
+  pgdata:
+  evolution_instances:
+  caddy_data:
+  caddy_config:

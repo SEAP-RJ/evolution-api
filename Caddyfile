@@ -1,0 +1,34 @@
+{
+  email {$ACME_EMAIL}
+  # opcional: acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+}
+
+{$DOMAIN} {
+  encode zstd gzip
+
+  # Segurança básica
+  header {
+    Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+    X-Content-Type-Options "nosniff"
+    X-Frame-Options "DENY"
+    Referrer-Policy "no-referrer"
+    Permissions-Policy "geolocation=(), microphone=(), camera=()"
+  }
+
+  @manager path /manager*
+  handle @manager {
+    basicauth {
+      {$BASIC_AUTH_USER} {$BASIC_AUTH_HASH}
+    }
+    reverse_proxy evolution_api:8080
+  }
+
+  # Demais rotas da API
+  reverse_proxy evolution_api:8080 {
+    # tempo extra para operações mais lentas
+    transport http {
+      read_timeout  120s
+      write_timeout 120s
+    }
+  }
+}

@@ -17,8 +17,8 @@
 
   @manager path /manager*
   handle @manager {
-    basicauth {
-      {$BASIC_AUTH_USER} {$BASIC_AUTH_HASH}
+    basic_auth bcrypt {
+      "{$BASIC_AUTH_USER}" "{$BASIC_AUTH_HASH}"
     }
     reverse_proxy evolution_api:8080
   }

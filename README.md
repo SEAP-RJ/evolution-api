@@ -118,3 +118,9 @@ Instruções para GitHub Copilot
 ---
 
 FIM
+
+Caddyfile (detalhes)
+
+- O `Caddyfile` na raiz do repositório contém a configuração usada pelo container `caddy` montado pelo `docker-compose.yml`.
+- Ele aplica cabeçalhos de segurança, roteia `/manager` para a API e protege essa rota com HTTP Basic Auth; também faz o TLS automático via Let's Encrypt/ZeroSSL.
+- Para referência rápida, a documentação oficial do Caddy está em: https://caddyserver.com/docs/

@@ -67,3 +67,8 @@ Resumo
 - Seja conciso, seguro e específico.
 - Use os padrões de formatação descritos aqui para todos os snippets e arquivos gerados.
 - Peça confirmação antes de ações destrutivas (remoção de volumes, reset de DB, etc.).
+
+Referências
+
+- Documentação oficial do Evolution API v2: https://doc.evolution-api.com/v2/pt/get-started/introduction
+- Documentação do Caddy: https://caddyserver.com/docs/
